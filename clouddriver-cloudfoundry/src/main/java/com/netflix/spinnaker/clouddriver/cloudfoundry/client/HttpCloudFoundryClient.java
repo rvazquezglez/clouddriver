@@ -33,9 +33,6 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ServiceKeyServi
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.SpaceService;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.TaskService;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.Token;
-import com.squareup.okhttp.Interceptor;
-import com.squareup.okhttp.OkHttpClient;
-import com.squareup.okhttp.Response;
 import io.github.resilience4j.retry.IntervalFunction;
 import io.github.resilience4j.retry.Retry;
 import io.github.resilience4j.retry.RetryConfig;
@@ -60,20 +57,13 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.OkHttpClient;
 import okio.Buffer;
 import okio.BufferedSource;
 import org.apache.commons.fileupload.MultipartStream;
 import org.cloudfoundry.dropsonde.events.EventFactory.Envelope;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import retrofit.RequestInterceptor;
-import retrofit.RestAdapter;
-import retrofit.client.OkClient;
-import retrofit.converter.ConversionException;
-import retrofit.converter.Converter;
-import retrofit.converter.JacksonConverter;
-import retrofit.mime.TypedInput;
-import retrofit.mime.TypedOutput;
 
 /**
  * Waiting for this issue to be resolved before replacing this class by the CF Java Client:

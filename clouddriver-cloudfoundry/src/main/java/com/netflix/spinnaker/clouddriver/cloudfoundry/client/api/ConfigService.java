@@ -18,9 +18,10 @@ package com.netflix.spinnaker.clouddriver.cloudfoundry.client.api;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.*;
 import java.util.Set;
-import retrofit.http.*;
+import retrofit2.Call;
+import retrofit2.http.*;
 
 public interface ConfigService {
   @GET("/v2/config/feature_flags")
-  Set<ConfigFeatureFlag> getConfigFeatureFlags();
+  Call<Set<ConfigFeatureFlag>> getConfigFeatureFlags();
 }

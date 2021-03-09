@@ -38,8 +38,10 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCrede
 import com.netflix.spinnaker.credentials.CredentialsRepository;
 import com.netflix.spinnaker.credentials.MapBackedCredentialsRepository;
 import com.netflix.spinnaker.credentials.NoopCredentialsLifecycleHandler;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.*;
 import java.util.concurrent.ForkJoinPool;
+import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
@@ -89,7 +91,9 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
         cacheRepository,
         null,
         ForkJoinPool.commonPool(),
-        emptyMap()) {
+        emptyMap(),
+        new OkHttpClient(),
+        new SimpleMeterRegistry()) {
       public CloudFoundryClient getClient() {
         return cloudFoundryClient;
       }
@@ -216,19 +220,19 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
     Map<String, Object> description =
         ImmutableMap.of(
             "applicationArtifact",
-                ImmutableMap.of(
-                    "artifactAccount",
-                    "destinationAccount",
-                    "type",
-                    "cloudfoundry/app",
-                    "name",
-                    "server-group-name",
-                    "location",
-                    "cf-region"),
-            "credentials", "test",
+            ImmutableMap.of(
+                "artifactAccount",
+                "destinationAccount",
+                "type",
+                "cloudfoundry/app",
+                "name",
+                "server-group-name",
+                "location",
+                "cf-region"),
+            "credentials",
+            "test",
             "manifest",
-                ImmutableList.of(
-                    ImmutableMap.of("applications", ImmutableList.of(ImmutableMap.of()))));
+            ImmutableList.of(ImmutableMap.of("applications", ImmutableList.of(ImmutableMap.of()))));
 
     DeployCloudFoundryServerGroupDescription result = converter.convertDescription(description);
 

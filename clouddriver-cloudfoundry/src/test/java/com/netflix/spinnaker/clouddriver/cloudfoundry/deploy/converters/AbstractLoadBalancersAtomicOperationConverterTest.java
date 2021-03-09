@@ -37,12 +37,14 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCrede
 import com.netflix.spinnaker.clouddriver.orchestration.AtomicOperation;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
 import com.netflix.spinnaker.credentials.MapBackedCredentialsRepository;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import io.vavr.collection.HashMap;
 import io.vavr.collection.List;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ForkJoinPool;
+import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
@@ -101,7 +103,9 @@ class AbstractLoadBalancersAtomicOperationConverterTest {
           cacheRepository,
           null,
           ForkJoinPool.commonPool(),
-          emptyMap()) {
+          emptyMap(),
+          new OkHttpClient(),
+          new SimpleMeterRegistry()) {
         public CloudFoundryClient getClient() {
           return cloudFoundryClient;
         }

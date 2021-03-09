@@ -35,6 +35,8 @@ import java.util.Arrays;
 import java.util.Optional;
 import java.util.concurrent.ForkJoinPool;
 import org.junit.jupiter.api.Test;
+import retrofit2.Response;
+import retrofit2.mock.Calls;
 
 class RoutesTest {
   @Test
@@ -55,8 +57,10 @@ class RoutesTest {
     route.setPath("/path");
 
     RouteService routeService = mock(RouteService.class);
-    when(routeService.all(any(), any(), any())).thenReturn(Page.singleton(route, "abc123"));
-    when(routeService.routeMappings(any(), any())).thenReturn(new Page<>());
+    when(routeService.all(any(), any(), any()))
+        .thenReturn(Calls.response(Response.success(Page.singleton(route, "abc123"))));
+    when(routeService.routeMappings(any(), any()))
+        .thenReturn(Calls.response(Response.success(new Page<>())));
 
     Routes routes =
         new Routes("pws", routeService, null, domains, spaces, 500, ForkJoinPool.commonPool());
@@ -126,8 +130,10 @@ class RoutesTest {
     routeMappingPage.setTotalPages(1);
 
     when(spaces.findById("space-guid")).thenReturn(space);
-    when(routeService.all(any(), any(), any())).thenReturn(routePage);
-    when(routeService.routeMappings(any(), any())).thenReturn(routeMappingPage);
+    when(routeService.all(any(), any(), any()))
+        .thenReturn(Calls.response(Response.success(routePage)));
+    when(routeService.routeMappings(any(), any()))
+        .thenReturn(Calls.response(Response.success(routeMappingPage)));
 
     Routes routes =
         new Routes("pws", routeService, null, domains, spaces, 500, ForkJoinPool.commonPool());

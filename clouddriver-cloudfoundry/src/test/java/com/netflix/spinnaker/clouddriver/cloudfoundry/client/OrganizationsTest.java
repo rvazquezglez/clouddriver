@@ -12,6 +12,8 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryOrganiza
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
+import retrofit2.Response;
+import retrofit2.mock.Calls;
 
 class OrganizationsTest {
   private Organizations organizations;
@@ -19,7 +21,8 @@ class OrganizationsTest {
   {
     OrganizationService organizationService = mock(OrganizationService.class);
     organizations = new Organizations(organizationService);
-    when(organizationService.all(any(), any())).thenReturn(generateOrganizationPage());
+    when(organizationService.all(any(), any()))
+        .thenReturn(Calls.response(Response.success(generateOrganizationPage())));
   }
 
   @Test

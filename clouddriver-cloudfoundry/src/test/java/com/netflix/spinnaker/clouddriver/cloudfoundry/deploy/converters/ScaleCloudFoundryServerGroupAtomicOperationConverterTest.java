@@ -32,10 +32,12 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.CloudFoundryProvi
 import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentials;
 import com.netflix.spinnaker.credentials.CredentialsRepository;
 import com.netflix.spinnaker.credentials.MapBackedCredentialsRepository;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import io.vavr.collection.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ForkJoinPool;
+import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.stubbing.Answer;
@@ -76,7 +78,9 @@ class ScaleCloudFoundryServerGroupAtomicOperationConverterTest {
           cacheRepository,
           null,
           ForkJoinPool.commonPool(),
-          emptyMap()) {
+          emptyMap(),
+          new OkHttpClient(),
+          new SimpleMeterRegistry()) {
         public CloudFoundryClient getClient() {
           return cloudFoundryClient;
         }
@@ -128,14 +132,16 @@ class ScaleCloudFoundryServerGroupAtomicOperationConverterTest {
   void convertDescriptionMissingFields() {
     final Map input =
         HashMap.of(
-                "credentials", "test",
-                "region", "org > space",
+                "credentials",
+                "test",
+                "region",
+                "org > space",
                 "capacity",
-                    HashMap.of(
-                            "desired", 215,
-                            "min", 12,
-                            "max", 61)
-                        .toJavaMap())
+                HashMap.of(
+                        "desired", 215,
+                        "min", 12,
+                        "max", 61)
+                    .toJavaMap())
             .toJavaMap();
 
     final ScaleCloudFoundryServerGroupDescription result = converter.convertDescription(input);

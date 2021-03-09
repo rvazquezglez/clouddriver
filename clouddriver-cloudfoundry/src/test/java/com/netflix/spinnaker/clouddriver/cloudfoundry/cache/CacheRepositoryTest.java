@@ -40,8 +40,10 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.model.*;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.provider.agent.CloudFoundryServerGroupCachingAgent;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.security.CloudFoundryCredentials;
 import com.netflix.spinnaker.clouddriver.model.HealthState;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.List;
 import java.util.concurrent.ForkJoinPool;
+import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
@@ -125,7 +127,9 @@ class CacheRepositoryTest {
         repo,
         null,
         ForkJoinPool.commonPool(),
-        emptyMap());
+        emptyMap(),
+        new OkHttpClient(),
+        new SimpleMeterRegistry());
   }
 
   @Test

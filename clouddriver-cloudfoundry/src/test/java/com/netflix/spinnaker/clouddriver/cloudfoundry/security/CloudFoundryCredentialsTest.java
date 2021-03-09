@@ -30,10 +30,12 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.client.CloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.MockCloudFoundryClient;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryOrganization;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
+import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ForkJoinPool;
+import okhttp3.OkHttpClient;
 import org.junit.jupiter.api.Test;
 
 public class CloudFoundryCredentialsTest {
@@ -57,7 +59,9 @@ public class CloudFoundryCredentialsTest {
             cacheRepository,
             null,
             ForkJoinPool.commonPool(),
-            emptyMap());
+            emptyMap(),
+            new OkHttpClient(),
+            new SimpleMeterRegistry());
 
     assertThat(credentials.getFilteredSpaces()).isEqualTo(emptyList());
   }
@@ -78,7 +82,9 @@ public class CloudFoundryCredentialsTest {
             cacheRepository,
             null,
             ForkJoinPool.commonPool(),
-            emptyMap()) {
+            emptyMap(),
+            new OkHttpClient(),
+            new SimpleMeterRegistry()) {
           public CloudFoundryClient getClient() {
             return cloudFoundryClient;
           }
@@ -127,7 +133,9 @@ public class CloudFoundryCredentialsTest {
             cacheRepository,
             null,
             ForkJoinPool.commonPool(),
-            emptyMap()) {
+            emptyMap(),
+            new OkHttpClient(),
+            new SimpleMeterRegistry()) {
           public CloudFoundryClient getClient() {
             return cloudFoundryClient;
           }
@@ -176,7 +184,9 @@ public class CloudFoundryCredentialsTest {
             cacheRepository,
             null,
             ForkJoinPool.commonPool(),
-            emptyMap()) {
+            emptyMap(),
+            new OkHttpClient(),
+            new SimpleMeterRegistry()) {
           public CloudFoundryClient getClient() {
             return cloudFoundryClient;
           }

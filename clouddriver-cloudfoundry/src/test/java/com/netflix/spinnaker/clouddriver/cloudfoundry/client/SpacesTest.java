@@ -16,6 +16,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import org.junit.jupiter.api.Test;
+import retrofit2.Response;
+import retrofit2.mock.Calls;
 
 class SpacesTest {
   private SpaceService spaceService = mock(SpaceService.class);
@@ -32,7 +34,8 @@ class SpacesTest {
     ServiceInstance serviceInstance = new ServiceInstance();
     serviceInstance.setName(serviceInstanceName);
     when(spaceService.getServiceInstancesById(any(), any(), any()))
-        .thenReturn(Page.singleton(serviceInstance, serviceInstanceId));
+        .thenReturn(
+            Calls.response(Response.success(Page.singleton(serviceInstance, serviceInstanceId))));
 
     CloudFoundryServiceInstance actual =
         spaces.getServiceInstanceByNameAndSpace(serviceInstanceName, cloudFoundrySpace);
@@ -48,7 +51,9 @@ class SpacesTest {
   void getServiceInstanceByNameAndSpaceShouldReturnNullWhenSpaceHasNoServiceInstances() {
     String serviceInstanceName1 = "service-instance";
     when(spaceService.getServiceInstancesById(any(), any(), any()))
-        .thenReturn(new Page<ServiceInstance>().setTotalResults(0).setTotalPages(1));
+        .thenReturn(
+            Calls.response(
+                Response.success(new Page<ServiceInstance>().setTotalResults(0).setTotalPages(1))));
 
     CloudFoundryServiceInstance actual =
         spaces.getServiceInstanceByNameAndSpace(serviceInstanceName1, cloudFoundrySpace);
@@ -72,7 +77,8 @@ class SpacesTest {
             .organization(expectedOrganization)
             .build();
 
-    when(spaceService.all(any(), any(), any())).thenReturn(generateSpacePage());
+    when(spaceService.all(any(), any(), any()))
+        .thenReturn(Calls.response(Response.success(generateSpacePage())));
     when(orgs.findByName(anyString())).thenReturn(Optional.of(expectedOrganization));
     Optional<CloudFoundrySpace> result = spaces.findSpaceByRegion("org > space");
 

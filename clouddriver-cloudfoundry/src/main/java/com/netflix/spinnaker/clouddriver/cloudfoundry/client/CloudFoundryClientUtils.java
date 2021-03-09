@@ -32,7 +32,7 @@ import java.util.function.Supplier;
 import retrofit2.Call;
 import retrofit2.Response;
 
-final class CloudFoundryClientUtils {
+public final class CloudFoundryClientUtils {
   private static ObjectMapper mapper =
       new ObjectMapper()
           .setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE)

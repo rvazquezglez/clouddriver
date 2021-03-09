@@ -30,6 +30,7 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.client.HttpCloudFoundryCli
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
 import com.netflix.spinnaker.clouddriver.security.AbstractAccountCredentials;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
+import io.micrometer.core.instrument.MeterRegistry;
 import java.util.*;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
@@ -38,6 +39,7 @@ import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.OkHttpClient;
 
 @Slf4j
 @Getter
@@ -85,6 +87,8 @@ public class CloudFoundryCredentials extends AbstractAccountCredentials<CloudFou
 
   private final List<CloudFoundrySpace> filteredSpaces;
 
+  private final CloudFoundryClient cloudFoundryClient;
+
   public CloudFoundryCredentials(
       String name,
       String appsManagerUri,
@@ -98,7 +102,9 @@ public class CloudFoundryCredentials extends AbstractAccountCredentials<CloudFou
       CacheRepository cacheRepository,
       Permissions permissions,
       ForkJoinPool forkJoinPool,
-      Map<String, Set<String>> spaceFilter) {
+      Map<String, Set<String>> spaceFilter,
+      OkHttpClient okHttpClient,
+      MeterRegistry registry) {
     this.name = name;
     this.appsManagerUri = appsManagerUri;
     this.metricsUri = metricsUri;
@@ -112,27 +118,27 @@ public class CloudFoundryCredentials extends AbstractAccountCredentials<CloudFou
     this.permissions = permissions == null ? Permissions.EMPTY : permissions;
     this.forkJoinPool = forkJoinPool;
     this.filteredSpaces = createFilteredSpaces(spaceFilter);
+    this.cloudFoundryClient =
+        new HttpCloudFoundryClient(
+            name,
+            appsManagerUri,
+            metricsUri,
+            apiHost,
+            userName,
+            password,
+            skipSslValidation,
+            resultsPerPage,
+            forkJoinPool,
+            okHttpClient.newBuilder(),
+            registry);
   }
 
   public CloudFoundryClient getCredentials() {
-    if (this.credentials == null) {
-      this.credentials =
-          new HttpCloudFoundryClient(
-              name,
-              appsManagerUri,
-              metricsUri,
-              apiHost,
-              userName,
-              password,
-              skipSslValidation,
-              resultsPerPage,
-              forkJoinPool);
-    }
     return credentials;
   }
 
   public CloudFoundryClient getClient() {
-    return getCredentials();
+    return cloudFoundryClient;
   }
 
   public Collection<Map<String, String>> getRegions() {
@@ -232,7 +238,7 @@ public class CloudFoundryCredentials extends AbstractAccountCredentials<CloudFou
     for (String orgName : spaceFilter.keySet()) {
       if (spaceFilter.get(orgName).isEmpty() || spaceFilter.get(orgName) == null) {
         List<CloudFoundrySpace> allSpacesByOrg =
-            this.getCredentials()
+            this.getClient()
                 .getSpaces()
                 .findAllBySpaceNamesAndOrgNames(null, singletonList(orgName));
         spaces.addAll(allSpacesByOrg);
@@ -244,7 +250,7 @@ public class CloudFoundryCredentials extends AbstractAccountCredentials<CloudFou
     }
     // IF an Org is provided with spaces -> add all spaces that are in the ORG and filteredRegions
     List<CloudFoundrySpace> allSpaces =
-        this.getCredentials()
+        this.getClient()
             .getSpaces()
             .findAllBySpaceNamesAndOrgNames(
                 spaceFilter.values().stream().flatMap(l -> l.stream()).collect(Collectors.toList()),

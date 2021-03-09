@@ -26,7 +26,7 @@ import retrofit2.http.*;
 public interface AuthenticationService {
   @FormUrlEncoded
   @POST("/oauth/token")
-  Token passwordToken(
+  Call<Token> passwordToken(
       @Field("grant_type") String grantType,
       @Field("username") String username,
       @Field("password") String password,

@@ -80,12 +80,12 @@ class DeployCloudFoundryServerGroupAtomicOperationConverterTest {
 
     return new CloudFoundryCredentials(
         name,
-        "",
-        "",
-        "",
-        "",
-        "",
-        "",
+        "managerUri",
+        "metricsUri",
+        "apiHost",
+        "username",
+        "password",
+        "environment",
         false,
         500,
         cacheRepository,

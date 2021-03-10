@@ -79,12 +79,12 @@ class DeployCloudFoundryServiceAtomicOperationConverterTest {
   private final CloudFoundryCredentials cloudFoundryCredentials =
       new CloudFoundryCredentials(
           "test",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
+          "managerUri",
+          "metricsUri",
+          "api.Host",
+          "userName",
+          "password",
+          "environment",
           false,
           500,
           cacheRepository,

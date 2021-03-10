@@ -46,17 +46,16 @@ public final class CloudFoundryClientUtils {
       throw new CloudFoundryApiException(e);
     } finally {
       if (response != null && !response.isSuccessful() && response.errorBody() != null) {
-        ErrorDescription errorDescription = null;
         try {
-          errorDescription =
+          ErrorDescription errorDescription =
               mapper.readValue(response.errorBody().string(), ErrorDescription.class);
+          throw new CloudFoundryApiException(errorDescription);
         } catch (IOException e) {
-          new CloudFoundryApiException(e);
+          throw new CloudFoundryApiException(e);
         }
-        throw new CloudFoundryApiException(errorDescription);
       }
     }
-    return Optional.of(response.body());
+    return Optional.ofNullable(response.body());
   }
 
   static <R> List<R> collectPages(

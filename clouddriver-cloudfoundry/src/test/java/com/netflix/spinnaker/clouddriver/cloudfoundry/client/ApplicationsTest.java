@@ -214,7 +214,7 @@ class ApplicationsTest {
   @Test
   void updateProcess() {
     when(applicationService.updateProcess(any(), any()))
-        .thenReturn(Calls.response(Response.success(new Process())));
+        .thenAnswer(invocation -> Calls.response(Response.success(new Process())));
 
     apps.updateProcess("guid1", "command1", "http", "/endpoint");
     verify(applicationService)

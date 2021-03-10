@@ -13,7 +13,10 @@ protobuf {
 
 
 configurations {
-  all*.exclude group: 'junit', module: 'junit'
+  all {
+    exclude group: 'junit'
+    exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+  }
 }
 
 junitPlatform {

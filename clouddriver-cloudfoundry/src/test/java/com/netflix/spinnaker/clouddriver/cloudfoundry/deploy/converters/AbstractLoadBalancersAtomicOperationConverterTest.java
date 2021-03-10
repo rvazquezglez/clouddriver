@@ -92,12 +92,12 @@ class AbstractLoadBalancersAtomicOperationConverterTest {
   private final CloudFoundryCredentials cloudFoundryCredentials =
       new CloudFoundryCredentials(
           "test",
-          "",
-          "",
-          "",
-          "",
-          "",
-          "",
+          "managerUri",
+          "metricsUri",
+          "api.host",
+          "username",
+          "password",
+          "environment",
           false,
           500,
           cacheRepository,

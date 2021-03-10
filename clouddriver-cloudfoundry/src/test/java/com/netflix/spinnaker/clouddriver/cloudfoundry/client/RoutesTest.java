@@ -58,9 +58,10 @@ class RoutesTest {
 
     RouteService routeService = mock(RouteService.class);
     when(routeService.all(any(), any(), any()))
-        .thenReturn(Calls.response(Response.success(Page.singleton(route, "abc123"))));
+        .thenAnswer(
+            invocation -> Calls.response(Response.success(Page.singleton(route, "abc123"))));
     when(routeService.routeMappings(any(), any()))
-        .thenReturn(Calls.response(Response.success(new Page<>())));
+        .thenAnswer(invocation -> Calls.response(Response.success(new Page<>())));
 
     Routes routes =
         new Routes("pws", routeService, null, domains, spaces, 500, ForkJoinPool.commonPool());
@@ -131,9 +132,9 @@ class RoutesTest {
 
     when(spaces.findById("space-guid")).thenReturn(space);
     when(routeService.all(any(), any(), any()))
-        .thenReturn(Calls.response(Response.success(routePage)));
+        .thenAnswer(invocation -> Calls.response(Response.success(routePage)));
     when(routeService.routeMappings(any(), any()))
-        .thenReturn(Calls.response(Response.success(routeMappingPage)));
+        .thenAnswer(invocation -> Calls.response(Response.success(routeMappingPage)));
 
     Routes routes =
         new Routes("pws", routeService, null, domains, spaces, 500, ForkJoinPool.commonPool());

@@ -112,7 +112,9 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
     OkHttpClient okHttpClient = applySslValidator(okHttpClientBuilder, skipSslValidation);
     this.uaaService =
         new Retrofit.Builder()
-            .baseUrl("https://" + this.apiHost.replaceAll("^api\\.", "login."))
+            .baseUrl(
+                (skipSslValidation ? "http://" : "https://")
+                    + this.apiHost.replaceAll("^api\\.", "login."))
             .client(okHttpClient)
             .addConverterFactory(JacksonConverterFactory.create(mapper))
             .build()
@@ -133,7 +135,7 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
     Retrofit retrofit =
         new Retrofit.Builder()
             .client(okHttpClient)
-            .baseUrl("https://" + this.apiHost)
+            .baseUrl((skipSslValidation ? "http://" : "https://") + this.apiHost)
             .addConverterFactory(JacksonConverterFactory.create(mapper))
             .build();
 
@@ -171,7 +173,9 @@ public class HttpCloudFoundryClient implements CloudFoundryClient {
         new Logs(
             new Retrofit.Builder()
                 .client(okHttpClient)
-                .baseUrl("https://" + apiHost.replaceAll("^api\\.", "doppler."))
+                .baseUrl(
+                    (skipSslValidation ? "http://" : "https://")
+                        + apiHost.replaceAll("^api\\.", "doppler."))
                 .addConverterFactory(ProtoConverterFactory.create())
                 .build()
                 .create(DopplerService.class));

@@ -41,7 +41,7 @@ public class AccessTokenInterceptor implements Interceptor {
         final Token newToken = accessTokenProvider.getAccessToken();
 
         // Token was refreshed before the synchronization. Use the updated token and proceed.
-        if (!currentToken.equals(newToken)) {
+        if (currentToken == null || !currentToken.equals(newToken)) {
           return chain.proceed(newRequestWithAccessToken(chain.request(), newToken));
         }
 

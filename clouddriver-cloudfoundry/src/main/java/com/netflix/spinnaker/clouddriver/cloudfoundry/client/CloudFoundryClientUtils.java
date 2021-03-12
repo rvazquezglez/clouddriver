@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Supplier;
+import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Response;
 
@@ -45,10 +46,10 @@ public final class CloudFoundryClientUtils {
     } catch (Exception e) {
       throw new CloudFoundryApiException(e);
     } finally {
-      if (response != null && !response.isSuccessful() && response.errorBody() != null) {
-        try {
+      if (response != null && !response.isSuccessful()) {
+        try (ResponseBody responseBody = response.errorBody()) {
           ErrorDescription errorDescription =
-              mapper.readValue(response.errorBody().string(), ErrorDescription.class);
+              mapper.readValue(responseBody.string(), ErrorDescription.class);
           throw new CloudFoundryApiException(errorDescription);
         } catch (IOException e) {
           throw new CloudFoundryApiException(e);

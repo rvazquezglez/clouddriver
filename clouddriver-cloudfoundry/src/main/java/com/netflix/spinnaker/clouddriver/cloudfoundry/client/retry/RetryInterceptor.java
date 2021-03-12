@@ -24,6 +24,7 @@ import io.github.resilience4j.retry.RetryConfig;
 import java.io.IOException;
 import java.net.SocketTimeoutException;
 import java.time.Duration;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 import okhttp3.Interceptor;
 import okhttp3.Response;
@@ -37,10 +38,13 @@ public class RetryInterceptor implements Interceptor {
   @Override
   public Response intercept(Chain chain) throws IOException {
     final String callName = "cf.api.call";
+    final int maxAttempts = RetryConfig.ofDefaults().getMaxAttempts();
+    AtomicInteger currentAttempts = new AtomicInteger();
     Retry retry =
         Retry.of(
             callName,
             RetryConfig.custom()
+                .maxAttempts(maxAttempts)
                 .intervalFunction(IntervalFunction.ofExponentialBackoff(Duration.ofSeconds(10), 3))
                 .retryExceptions(SocketTimeoutException.class, RetryableApiException.class)
                 .build());
@@ -49,6 +53,7 @@ public class RetryInterceptor implements Interceptor {
     try {
       return retry.executeCallable(
           () -> {
+            currentAttempts.incrementAndGet();
             Response response = chain.proceed(chain.request());
             lastResponse.set(response);
             switch (response.code()) {
@@ -57,6 +62,9 @@ public class RetryInterceptor implements Interceptor {
               case 504:
                 // after retries fail, the response body for these status codes will get wrapped up
                 // into a CloudFoundryApiException
+                if (currentAttempts.get() < maxAttempts) {
+                  response.close();
+                }
                 throw new RetryableApiException(
                     "Response Code "
                         + response.code()

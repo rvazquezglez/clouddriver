@@ -57,7 +57,7 @@ public class AccessTokenProvider {
       this.token = token;
       this.tokenExpiration = System.currentTimeMillis() + ((token.getExpiresIn() - 120) * 1000);
     } catch (Exception e) {
-      // throw some error
+      throw new CloudFoundryApiException(e, "Could not refresh token.");
     }
   }
 }

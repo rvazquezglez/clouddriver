@@ -51,6 +51,9 @@ public final class CloudFoundryClientUtils {
           if (response.code() == 401) {
             throw new CloudFoundryApiException("Unauthorized");
           }
+          if (response.code() == 404) {
+            return Optional.empty();
+          }
           ErrorDescription errorDescription =
               mapper.readValue(responseBody.string(), ErrorDescription.class);
           throw new CloudFoundryApiException(errorDescription);

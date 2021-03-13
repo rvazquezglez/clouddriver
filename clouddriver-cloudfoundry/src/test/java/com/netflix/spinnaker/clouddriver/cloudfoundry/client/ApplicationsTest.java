@@ -21,7 +21,6 @@ import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.Matchers.any;
 import static org.mockito.Mockito.*;
 
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.api.ApplicationService;
@@ -31,13 +30,13 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Applicatio
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Package;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v3.Process;
 import com.netflix.spinnaker.clouddriver.cloudfoundry.model.*;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryOrganization;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundryServerGroup;
-import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
 import io.micrometer.core.instrument.simple.SimpleMeterRegistry;
 import io.vavr.collection.HashMap;
 import java.time.ZonedDateTime;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
 import java.util.concurrent.ForkJoinPool;
 import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
@@ -49,9 +48,9 @@ import retrofit2.Response;
 import retrofit2.mock.Calls;
 
 class ApplicationsTest {
-  private ApplicationService applicationService = mock(ApplicationService.class);
-  private Spaces spaces = mock(Spaces.class);
-  private Applications apps =
+  private final ApplicationService applicationService = mock(ApplicationService.class);
+  private final Spaces spaces = mock(Spaces.class);
+  private final Applications apps =
       new Applications(
           "pws",
           "some-apps-man-uri",
@@ -60,8 +59,8 @@ class ApplicationsTest {
           spaces,
           500,
           ForkJoinPool.commonPool());
-  private String spaceId = "space-guid";
-  private CloudFoundrySpace cloudFoundrySpace =
+  private final String spaceId = "space-guid";
+  private final CloudFoundrySpace cloudFoundrySpace =
       CloudFoundrySpace.builder()
           .id(spaceId)
           .name("space-name")
@@ -98,8 +97,6 @@ class ApplicationsTest {
 
   @Test
   void scaleApplicationIfInputsAreMixOfNullAndZero() {
-    ResponseBody successResponse =
-        ResponseBody.create(MediaType.parse("application/json"), "some context");
     when(applicationService.scaleApplication(any(), any()))
         .thenReturn(Calls.response(Response.success(null)));
 
@@ -247,16 +244,16 @@ class ApplicationsTest {
     verify(applicationService, never()).findById(anyString());
   }
 
-  //  @Test
-  //  void getProcessStateWhenStatsNotFound() {
-  //    Response errorResponse =
-  //      new Response("http://capi.io", 404, "Not Found", Collections.emptyList(), null);
-  //    when(applicationService.findProcessStatsById(anyString()))
-  //      .thenThrow(RetrofitError.httpError("http://capi.io", errorResponse, null, null));
-  //    ProcessStats.State result = apps.getProcessState("some-app-guid");
-  //    assertThat(result).isEqualTo(ProcessStats.State.DOWN);
-  //    verify(applicationService, never()).findById(anyString());
-  //  }
+  @Test
+  void getProcessStateWhenStatsNotFound() {
+    when(applicationService.findProcessStatsById(anyString()))
+        .thenReturn(
+            Calls.response(
+                Response.error(404, ResponseBody.create(MediaType.get("application/json"), "{}"))));
+    ProcessStats.State result = apps.getProcessState("some-app-guid");
+    assertThat(result).isEqualTo(ProcessStats.State.DOWN);
+    verify(applicationService, never()).findById(anyString());
+  }
 
   @Test
   void getProcessStateWhenStatsIsEmptyListAndAppIsStarted() {
@@ -306,7 +303,7 @@ class ApplicationsTest {
   @ValueSource(strings = {"myapp-v999", "myapp"})
   void getTakenServerGroups(String existingApp) {
 
-    when(applicationService.listAppsFiltered(isNull(Integer.class), any(), any()))
+    when(applicationService.listAppsFiltered(isNull(), any(), any()))
         .thenReturn(
             Calls.response(Response.success(Page.singleton(getApplication(existingApp), "123"))));
 
@@ -322,7 +319,7 @@ class ApplicationsTest {
     com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application application =
         getApplication(similarAppName);
 
-    when(applicationService.listAppsFiltered(isNull(Integer.class), any(), any()))
+    when(applicationService.listAppsFiltered(isNull(), any(), any()))
         .thenReturn(Calls.response(Response.success(Page.singleton(application, "123"))));
 
     List<Resource<com.netflix.spinnaker.clouddriver.cloudfoundry.client.model.v2.Application>>
@@ -332,7 +329,7 @@ class ApplicationsTest {
 
   @Test
   void getLatestServerGroupCapiDoesntCorrectlyOrderResults() {
-    when(applicationService.listAppsFiltered(isNull(Integer.class), any(), any()))
+    when(applicationService.listAppsFiltered(isNull(), any(), any()))
         .thenReturn(
             Calls.response(
                 Response.success(
@@ -431,8 +428,7 @@ class ApplicationsTest {
     CloudFoundryServerGroup serverGroup =
         apps.findServerGroupByNameAndSpaceId(serverGroupName, spaceId);
 
-    assertThat(serverGroup)
-        .isEqualToComparingFieldByFieldRecursively(expectedCloudFoundryServerGroup);
+    assertThat(serverGroup).usingRecursiveComparison().isEqualTo(expectedCloudFoundryServerGroup);
     // server group should be cached because of call to "findServerGroupId"
     verify(applicationService, never()).findById(serverGroupId);
   }

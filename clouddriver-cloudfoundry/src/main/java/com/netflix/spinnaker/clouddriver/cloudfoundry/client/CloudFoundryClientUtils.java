@@ -48,11 +48,14 @@ public final class CloudFoundryClientUtils {
     } finally {
       if (response != null && !response.isSuccessful()) {
         try (ResponseBody responseBody = response.errorBody()) {
+          if (response.code() == 401) {
+            throw new CloudFoundryApiException("Unauthorized");
+          }
           ErrorDescription errorDescription =
               mapper.readValue(responseBody.string(), ErrorDescription.class);
           throw new CloudFoundryApiException(errorDescription);
         } catch (IOException e) {
-          throw new CloudFoundryApiException(e);
+          throw new CloudFoundryApiException(e, "Could not parse error");
         }
       }
     }

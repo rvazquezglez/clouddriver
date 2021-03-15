@@ -34,7 +34,7 @@ import retrofit2.Call;
 import retrofit2.Response;
 
 public final class CloudFoundryClientUtils {
-  private static ObjectMapper mapper =
+  private static final ObjectMapper mapper =
       new ObjectMapper()
           .setPropertyNamingStrategy(PropertyNamingStrategy.SNAKE_CASE)
           .disable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
@@ -107,5 +107,9 @@ public final class CloudFoundryClientUtils {
     }
 
     return allResources;
+  }
+
+  public static ObjectMapper getMapper() {
+    return mapper;
   }
 }

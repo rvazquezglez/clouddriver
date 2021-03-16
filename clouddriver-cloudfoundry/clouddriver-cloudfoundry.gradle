@@ -58,7 +58,7 @@ dependencies {
   implementation "com.squareup.retrofit2:retrofit"
   implementation "com.netflix.spectator:spectator-reg-micrometer"
   implementation "com.squareup.retrofit2:retrofit-mock"
-  implementation "com.squareup.retrofit2:converter-protobuf:2.8.1" // TODO: move this to kork
+  implementation "com.squareup.retrofit2:converter-protobuf:2.8.1"
   implementation "io.micrometer:micrometer-core:1.6.4"
   implementation "commons-io:commons-io"
   implementation "io.github.resilience4j:resilience4j-retry"

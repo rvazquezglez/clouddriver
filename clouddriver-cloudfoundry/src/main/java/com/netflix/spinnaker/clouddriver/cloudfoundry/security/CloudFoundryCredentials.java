@@ -16,9 +16,6 @@
 
 package com.netflix.spinnaker.clouddriver.cloudfoundry.security;
 
-import static java.util.Collections.*;
-import static java.util.stream.Collectors.toList;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.github.benmanes.caffeine.cache.Caffeine;
 import com.github.benmanes.caffeine.cache.LoadingCache;
@@ -31,15 +28,19 @@ import com.netflix.spinnaker.clouddriver.cloudfoundry.model.CloudFoundrySpace;
 import com.netflix.spinnaker.clouddriver.security.AbstractAccountCredentials;
 import com.netflix.spinnaker.fiat.model.resources.Permissions;
 import io.micrometer.core.instrument.MeterRegistry;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
+import okhttp3.OkHttpClient;
+
+import javax.annotation.Nullable;
 import java.util.*;
 import java.util.concurrent.ForkJoinPool;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
-import javax.annotation.Nullable;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
-import okhttp3.OkHttpClient;
+
+import static java.util.Collections.*;
+import static java.util.stream.Collectors.toList;
 
 @Slf4j
 @Getter
@@ -63,19 +64,22 @@ public class CloudFoundryCredentials extends AbstractAccountCredentials<CloudFou
   private final String userName;
   private final String password;
 
-  @Nullable private final String environment;
+  @Nullable
+  private final String environment;
 
   private final String accountType = "cloudfoundry";
 
   private final String cloudProvider = "cloudfoundry";
 
-  @Deprecated private final List<String> requiredGroupMembership = Collections.emptyList();
+  @Deprecated
+  private final List<String> requiredGroupMembership = Collections.emptyList();
   private final boolean skipSslValidation;
 
-  @Nullable private final Integer resultsPerPage;
+  @Nullable
+  private final Integer resultsPerPage;
 
   private final Supplier<List<CloudFoundrySpace>> spaceSupplier =
-      Memoizer.memoizeWithExpiration(this::spaceSupplier, SPACE_EXPIRY_SECONDS, TimeUnit.SECONDS);
+    Memoizer.memoizeWithExpiration(this::spaceSupplier, SPACE_EXPIRY_SECONDS, TimeUnit.SECONDS);
 
   private CloudFoundryClient credentials;
 
@@ -90,21 +94,21 @@ public class CloudFoundryCredentials extends AbstractAccountCredentials<CloudFou
   private final CloudFoundryClient cloudFoundryClient;
 
   public CloudFoundryCredentials(
-      String name,
-      String appsManagerUri,
-      String metricsUri,
-      String apiHost,
-      String userName,
-      String password,
-      String environment,
-      boolean skipSslValidation,
-      Integer resultsPerPage,
-      CacheRepository cacheRepository,
-      Permissions permissions,
-      ForkJoinPool forkJoinPool,
-      Map<String, Set<String>> spaceFilter,
-      OkHttpClient okHttpClient,
-      MeterRegistry registry) {
+    String name,
+    String appsManagerUri,
+    String metricsUri,
+    String apiHost,
+    String userName,
+    String password,
+    String environment,
+    boolean skipSslValidation,
+    Integer resultsPerPage,
+    CacheRepository cacheRepository,
+    Permissions permissions,
+    ForkJoinPool forkJoinPool,
+    Map<String, Set<String>> spaceFilter,
+    OkHttpClient okHttpClient,
+    MeterRegistry registry) {
     this.name = name;
     this.appsManagerUri = appsManagerUri;
     this.metricsUri = metricsUri;
@@ -119,18 +123,19 @@ public class CloudFoundryCredentials extends AbstractAccountCredentials<CloudFou
     this.forkJoinPool = forkJoinPool;
     this.filteredSpaces = createFilteredSpaces(spaceFilter);
     this.cloudFoundryClient =
-        new HttpCloudFoundryClient(
-            name,
-            appsManagerUri,
-            metricsUri,
-            apiHost,
-            userName,
-            password,
-            skipSslValidation,
-            resultsPerPage,
-            forkJoinPool,
-            okHttpClient.newBuilder(),
-            registry);
+      new HttpCloudFoundryClient(
+        name,
+        appsManagerUri,
+        metricsUri,
+        apiHost,
+        userName,
+        password,
+        true,
+        skipSslValidation,
+        resultsPerPage,
+        forkJoinPool,
+        okHttpClient.newBuilder(),
+        registry);
   }
 
   public CloudFoundryClient getCredentials() {
@@ -143,17 +148,17 @@ public class CloudFoundryCredentials extends AbstractAccountCredentials<CloudFou
 
   public Collection<Map<String, String>> getRegions() {
     return spaceSupplier.get().stream()
-        .filter(
-            s -> {
-              if (!filteredSpaces.isEmpty()) {
-                List<String> filteredRegions =
-                    filteredSpaces.stream().map(fs -> fs.getRegion()).collect(toList());
-                return filteredRegions.contains(s.getRegion());
-              }
-              return true;
-            })
-        .map(space -> singletonMap("name", space.getRegion()))
-        .collect(toList());
+      .filter(
+        s -> {
+          if (!filteredSpaces.isEmpty()) {
+            List<String> filteredRegions =
+              filteredSpaces.stream().map(fs -> fs.getRegion()).collect(toList());
+            return filteredRegions.contains(s.getRegion());
+          }
+          return true;
+        })
+      .map(space -> singletonMap("name", space.getRegion()))
+      .collect(toList());
   }
 
   protected List<CloudFoundrySpace> spaceSupplier() {
@@ -181,50 +186,26 @@ public class CloudFoundryCredentials extends AbstractAccountCredentials<CloudFou
     }
     CloudFoundryCredentials that = (CloudFoundryCredentials) o;
     return name.equals(that.name)
-        && Objects.equals(appsManagerUri, that.appsManagerUri)
-        && Objects.equals(metricsUri, that.metricsUri)
-        && Objects.equals(userName, that.userName)
-        && Objects.equals(password, that.password)
-        && Objects.equals(environment, that.environment)
-        && Objects.equals(skipSslValidation, that.skipSslValidation)
-        && Objects.equals(resultsPerPage, that.resultsPerPage);
+      && Objects.equals(appsManagerUri, that.appsManagerUri)
+      && Objects.equals(metricsUri, that.metricsUri)
+      && Objects.equals(userName, that.userName)
+      && Objects.equals(password, that.password)
+      && Objects.equals(environment, that.environment)
+      && Objects.equals(skipSslValidation, that.skipSslValidation)
+      && Objects.equals(resultsPerPage, that.resultsPerPage);
   }
 
   @Override
   public int hashCode() {
     return Objects.hash(
-        name,
-        appsManagerUri,
-        metricsUri,
-        userName,
-        password,
-        environment,
-        skipSslValidation,
-        resultsPerPage);
-  }
-
-  /**
-   * Thin wrapper around a Caffeine cache that handles memoizing a supplier function with expiration
-   */
-  private static class Memoizer<T> implements Supplier<T> {
-    private static final String CACHE_KEY = "key";
-    private final LoadingCache<String, T> cache;
-
-    private Memoizer(Supplier<T> supplier, long expirySeconds, TimeUnit timeUnit) {
-      this.cache =
-          Caffeine.newBuilder()
-              .refreshAfterWrite(expirySeconds, timeUnit)
-              .build(key -> supplier.get());
-    }
-
-    public T get() {
-      return cache.get(CACHE_KEY);
-    }
-
-    public static <U> Memoizer<U> memoizeWithExpiration(
-        Supplier<U> supplier, long expirySeconds, TimeUnit timeUnit) {
-      return new Memoizer<>(supplier, expirySeconds, timeUnit);
-    }
+      name,
+      appsManagerUri,
+      metricsUri,
+      userName,
+      password,
+      environment,
+      skipSslValidation,
+      resultsPerPage);
   }
 
   protected List<CloudFoundrySpace> createFilteredSpaces(Map<String, Set<String>> spaceFilter) {
@@ -238,9 +219,9 @@ public class CloudFoundryCredentials extends AbstractAccountCredentials<CloudFou
     for (String orgName : spaceFilter.keySet()) {
       if (spaceFilter.get(orgName).isEmpty() || spaceFilter.get(orgName) == null) {
         List<CloudFoundrySpace> allSpacesByOrg =
-            this.getClient()
-                .getSpaces()
-                .findAllBySpaceNamesAndOrgNames(null, singletonList(orgName));
+          this.getClient()
+            .getSpaces()
+            .findAllBySpaceNamesAndOrgNames(null, singletonList(orgName));
         spaces.addAll(allSpacesByOrg);
       } else {
         for (String spaceName : spaceFilter.get(orgName)) {
@@ -250,19 +231,43 @@ public class CloudFoundryCredentials extends AbstractAccountCredentials<CloudFou
     }
     // IF an Org is provided with spaces -> add all spaces that are in the ORG and filteredRegions
     List<CloudFoundrySpace> allSpaces =
-        this.getClient()
-            .getSpaces()
-            .findAllBySpaceNamesAndOrgNames(
-                spaceFilter.values().stream().flatMap(l -> l.stream()).collect(Collectors.toList()),
-                List.copyOf(spaceFilter.keySet()));
+      this.getClient()
+        .getSpaces()
+        .findAllBySpaceNamesAndOrgNames(
+          spaceFilter.values().stream().flatMap(l -> l.stream()).collect(Collectors.toList()),
+          List.copyOf(spaceFilter.keySet()));
     allSpaces.stream()
-        .filter(s -> filteredRegions.contains(s.getRegion()))
-        .forEach(s -> spaces.add(s));
+      .filter(s -> filteredRegions.contains(s.getRegion()))
+      .forEach(s -> spaces.add(s));
 
     if (spaces.isEmpty())
       throw new IllegalArgumentException(
-          "The spaceFilter had Orgs and/or Spaces but CloudFoundry returned no spaces as a result. Spaces must not be null or empty when a spaceFilter is included.");
+        "The spaceFilter had Orgs and/or Spaces but CloudFoundry returned no spaces as a result. Spaces must not be null or empty when a spaceFilter is included.");
 
     return ImmutableList.copyOf(spaces);
+  }
+
+  /**
+   * Thin wrapper around a Caffeine cache that handles memoizing a supplier function with expiration
+   */
+  private static class Memoizer<T> implements Supplier<T> {
+    private static final String CACHE_KEY = "key";
+    private final LoadingCache<String, T> cache;
+
+    private Memoizer(Supplier<T> supplier, long expirySeconds, TimeUnit timeUnit) {
+      this.cache =
+        Caffeine.newBuilder()
+          .refreshAfterWrite(expirySeconds, timeUnit)
+          .build(key -> supplier.get());
+    }
+
+    public T get() {
+      return cache.get(CACHE_KEY);
+    }
+
+    public static <U> Memoizer<U> memoizeWithExpiration(
+      Supplier<U> supplier, long expirySeconds, TimeUnit timeUnit) {
+      return new Memoizer<>(supplier, expirySeconds, timeUnit);
+    }
   }
 }

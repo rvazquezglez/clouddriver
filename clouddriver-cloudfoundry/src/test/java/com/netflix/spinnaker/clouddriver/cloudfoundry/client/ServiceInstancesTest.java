@@ -1259,88 +1259,72 @@ class ServiceInstancesTest {
     verify(serviceInstanceService, never()).allUserProvided(any(), any());
   }
 
-  //  @Test
-  //  void destroyUserProvidedServiceInstanceShouldSucceedWhenNoServiceBindingsExist() {
-  //    RetrofitError retrofitErrorNotFound = mock(RetrofitError.class);
-  //    Response notFoundResponse =
-  //        new Response("someUri", 404, "whynot", Collections.emptyList(), null);
-  //
-  // when(retrofitErrorNotFound.getResponse()).thenAnswer(invocation ->
-  // Calls.response(Response.success(notFoundResponse)));
-  //
-  //    when(serviceInstanceService.all(any(),
-  // anyListOf(String.class))).thenAnswer(invocation -> Calls.response(Response.success(new
-  // Page<>())));
-  //    when(serviceInstanceService.allUserProvided(any(), anyListOf(String.class)))
-  //        .thenAnswer(invocation ->
-  // Calls.response(Response.success(createUserProvidedServiceInstancePage())));
-  //    when(serviceInstanceService.getBindingsForUserProvidedServiceInstance(
-  //            "up-service-instance-guid", null, null))
-  //        .thenAnswer(invocation -> Calls.response(Response.success(new Page<>())));
-  //    when(serviceInstanceService.destroyUserProvidedServiceInstance(any()))
-  //        .thenAnswer(invocation -> Calls.response(Response.success(new Response("url", 204,
-  // "reason",
-  // Collections.emptyList(), null))));
-  //
-  //    ServiceInstanceResponse response =
-  //        serviceInstances.destroyServiceInstance(cloudFoundrySpace, "new-service-instance-name");
-  //
-  //    assertThat(response)
-  //        .isEqualTo(
-  //            new ServiceInstanceResponse()
-  //                .setServiceInstanceName("new-service-instance-name")
-  //                .setType(DELETE)
-  //                .setState(IN_PROGRESS));
-  //    verify(serviceInstanceService, times(1)).all(any(), anyListOf(String.class));
-  //    verify(serviceInstanceService, times(1)).allUserProvided(any(), any());
-  //    verify(serviceInstanceService, times(1)).destroyUserProvidedServiceInstance(any());
-  //    verify(serviceInstanceService, times(1))
-  //        .getBindingsForUserProvidedServiceInstance(any(), any(), any());
-  //    verify(serviceInstanceService, never()).destroyServiceInstance(any());
-  //  }
+  @Test
+  void destroyUserProvidedServiceInstanceShouldSucceedWhenNoServiceBindingsExist() {
+    when(serviceInstanceService.all(any(), anyListOf(String.class)))
+        .thenAnswer(invocation -> Calls.response(Response.success(new Page<>())));
+    when(serviceInstanceService.allUserProvided(any(), anyListOf(String.class)))
+        .thenAnswer(
+            invocation ->
+                Calls.response(Response.success(createUserProvidedServiceInstancePage())));
+    when(serviceInstanceService.getBindingsForUserProvidedServiceInstance(
+            "up-service-instance-guid", null, null))
+        .thenAnswer(invocation -> Calls.response(Response.success(new Page<>())));
+    when(serviceInstanceService.destroyUserProvidedServiceInstance(any()))
+        .thenAnswer(invocation -> Calls.response(Response.success("")));
 
-  //  @Test
-  //  void destroyUserProvidedServiceInstanceShouldThrowExceptionWhenDeleteServiceInstanceFails() {
-  //    Page<ServiceBinding> serviceBindingPage = new Page<>();
-  //    serviceBindingPage.setTotalResults(0);
-  //    serviceBindingPage.setTotalPages(1);
-  //
-  //    RetrofitError destroyFailed = mock(RetrofitError.class);
-  //    Response notFoundResponse =
-  //        new Response("someUri", 418, "I'm a teapot", Collections.emptyList(), null);
-  //
-  // when(destroyFailed.getResponse()).thenAnswer(invocation ->
-  // Calls.response(Response.success(notFoundResponse))));
-  //    ErrorDescription errorDescription = new ErrorDescription();
-  //    errorDescription.setErrorCode(ErrorDescription.Code.RESOURCE_NOT_FOUND);
-  //
-  // when(destroyFailed.getBodyAs(any())).thenAnswer(invocation ->
-  // Calls.response(Response.success(errorDescription)));
-  //
-  //    when(serviceInstanceService.all(any(),
-  // anyListOf(String.class))).thenAnswer(invocation -> Calls.response(Response.success(new
-  // Page<>())));
-  //    when(serviceInstanceService.allUserProvided(any(), anyListOf(String.class)))
-  //        .thenAnswer(invocation ->
-  // Calls.response(Response.success(createUserProvidedServiceInstancePage())));
-  //    when(serviceInstanceService.getBindingsForUserProvidedServiceInstance(any(), any(), any()))
-  //        .thenAnswer(invocation -> Calls.response(Response.success(serviceBindingPage)));
-  //
-  // when(serviceInstanceService.destroyUserProvidedServiceInstance(any())).thenThrow(destroyFailed);
-  //
-  //    assertThrows(
-  //        () -> serviceInstances.destroyServiceInstance(cloudFoundrySpace,
-  // "service-instance-name"),
-  //        CloudFoundryApiException.class,
-  //        "Cloud Foundry API returned with error(s): ");
-  //
-  //    verify(serviceInstanceService, times(1)).all(any(), anyList());
-  //    verify(serviceInstanceService, times(1)).allUserProvided(any(), any());
-  //    verify(serviceInstanceService, times(1))
-  //        .getBindingsForUserProvidedServiceInstance(any(), any(), any());
-  //    verify(serviceInstanceService, times(1)).destroyUserProvidedServiceInstance(any());
-  //    verify(serviceInstanceService, never()).destroyServiceInstance(any());
-  //  }
+    ServiceInstanceResponse response =
+        serviceInstances.destroyServiceInstance(cloudFoundrySpace, "new-service-instance-name");
+
+    assertThat(response)
+        .isEqualTo(
+            new ServiceInstanceResponse()
+                .setServiceInstanceName("new-service-instance-name")
+                .setType(DELETE)
+                .setState(IN_PROGRESS));
+    verify(serviceInstanceService, times(1)).all(any(), anyListOf(String.class));
+    verify(serviceInstanceService, times(1)).allUserProvided(any(), any());
+    verify(serviceInstanceService, times(1)).destroyUserProvidedServiceInstance(any());
+    verify(serviceInstanceService, times(1))
+        .getBindingsForUserProvidedServiceInstance(any(), any(), any());
+    verify(serviceInstanceService, never()).destroyServiceInstance(any());
+  }
+
+  @Test
+  void destroyUserProvidedServiceInstanceShouldThrowExceptionWhenDeleteServiceInstanceFails() {
+    Page<ServiceBinding> serviceBindingPage = new Page<>();
+    serviceBindingPage.setTotalResults(0);
+    serviceBindingPage.setTotalPages(1);
+
+    when(serviceInstanceService.all(any(), anyListOf(String.class)))
+        .thenAnswer(invocation -> Calls.response(Response.success(new Page<>())));
+    when(serviceInstanceService.allUserProvided(any(), anyListOf(String.class)))
+        .thenAnswer(
+            invocation ->
+                Calls.response(Response.success(createUserProvidedServiceInstancePage())));
+    when(serviceInstanceService.getBindingsForUserProvidedServiceInstance(any(), any(), any()))
+        .thenAnswer(invocation -> Calls.response(Response.success(serviceBindingPage)));
+    when(serviceInstanceService.destroyUserProvidedServiceInstance(any()))
+        .thenReturn(
+            Calls.response(
+                Response.error(
+                    418,
+                    ResponseBody.create(
+                        MediaType.get("application/json"),
+                        "{\"error_code\": \"CF-ServiceBindingAppServiceTaken\", \"description\":\"i'm a teapod\"}"))));
+
+    assertThrows(
+        () -> serviceInstances.destroyServiceInstance(cloudFoundrySpace, "service-instance-name"),
+        CloudFoundryApiException.class,
+        "Cloud Foundry API returned with error(s): i'm a teapod");
+
+    verify(serviceInstanceService, times(1)).all(any(), anyList());
+    verify(serviceInstanceService, times(1)).allUserProvided(any(), any());
+    verify(serviceInstanceService, times(1))
+        .getBindingsForUserProvidedServiceInstance(any(), any(), any());
+    verify(serviceInstanceService, times(1)).destroyUserProvidedServiceInstance(any());
+    verify(serviceInstanceService, never()).destroyServiceInstance(any());
+  }
 
   @Test
   void destroyUserProvidedServiceInstanceShouldFailIfServiceBindingsExists() {

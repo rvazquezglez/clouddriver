@@ -1154,70 +1154,52 @@ class ServiceInstancesTest {
         "Cloud Foundry API returned with error(s): Please specify a name for the service being sought");
   }
 
-  //  @Test
-  //  void destroyServiceInstanceShouldSucceedWhenNoServiceBindingsExist() {
-  //    RetrofitError retrofitErrorNotFound = mock(RetrofitError.class);
-  //    Response notFoundResponse =
-  //        new Response("someUri", 404, "whynot", Collections.emptyList(), null);
-  //    when(retrofitErrorNotFound.getResponse()).thenReturn(notFoundResponse);
-  //
-  //    when(serviceInstanceService.all(any(), anyListOf(String.class)))
-  //        .thenAnswer(invocation ->
-  // Calls.response(Response.success(createOsbServiceInstancePage())));
-  //    when(serviceInstanceService.getBindingsForServiceInstance("service-instance-guid", null,
-  // null))
-  //        .thenAnswer(invocation -> Calls.response(Response.success(new Page<>())));
-  //    when(serviceInstanceService.destroyServiceInstance(any()))
-  //        .thenAnswer(invocation -> Calls.response(Response.success(202, null)));
-  //
-  //    ServiceInstanceResponse response =
-  //        serviceInstances.destroyServiceInstance(cloudFoundrySpace, "new-service-instance-name");
-  //
-  //    assertThat(response)
-  //        .isEqualTo(
-  //            new ServiceInstanceResponse()
-  //                .setServiceInstanceName("new-service-instance-name")
-  //                .setType(DELETE)
-  //                .setState(IN_PROGRESS));
-  //    verify(serviceInstanceService, times(1)).all(any(), anyListOf(String.class));
-  //    verify(serviceInstanceService, times(1)).destroyServiceInstance(any());
-  //    verify(serviceInstanceService, never()).allUserProvided(any(), any());
-  //  }
+  @Test
+  void destroyServiceInstanceShouldSucceedWhenNoServiceBindingsExist() {
+    when(serviceInstanceService.all(any(), anyListOf(String.class)))
+        .thenAnswer(invocation -> Calls.response(Response.success(createOsbServiceInstancePage())));
+    when(serviceInstanceService.getBindingsForServiceInstance("service-instance-guid", null, null))
+        .thenAnswer(invocation -> Calls.response(Response.success(new Page<>())));
+    when(serviceInstanceService.destroyServiceInstance(any()))
+        .thenAnswer(invocation -> Calls.response(Response.success(202, null)));
 
-  //  @Test
-  //  void destroyServiceInstanceShouldThrowExceptionWhenDeleteServiceInstanceFails() {
-  //    Page<ServiceBinding> serviceBindingPage = new Page<>();
-  //    serviceBindingPage.setTotalResults(0);
-  //    serviceBindingPage.setTotalPages(1);
-  //
-  //    RetrofitError destroyFailed = mock(RetrofitError.class);
-  //    Response notFoundResponse =
-  //        new Response("someUri", 418, "I'm a teapot", Collections.emptyList(), null);
-  //
-  // when(destroyFailed.getResponse()).thenAnswer(invocation ->
-  // Calls.response(Response.success(notFoundResponse)));
-  //    ErrorDescription errorDescription = new ErrorDescription();
-  //    errorDescription.setErrorCode(ErrorDescription.Code.RESOURCE_NOT_FOUND);
-  //
-  // when(destroyFailed.getBodyAs(any())).thenAnswer(invocation ->
-  // Calls.response(Response.success(errorDescription)));
-  //
-  //    when(serviceInstanceService.all(any(),
-  // any())).thenAnswer(invocation ->
-  // Calls.response(Response.success(createOsbServiceInstancePage())));
-  //    when(serviceInstanceService.getBindingsForServiceInstance(any(), any(), any()))
-  //        .thenAnswer(invocation -> Calls.response(Response.success(serviceBindingPage)));
-  //    when(serviceInstanceService.destroyServiceInstance(any())).thenThrow(destroyFailed);
-  //
-  //    assertThrows(
-  //        () -> serviceInstances.destroyServiceInstance(cloudFoundrySpace,
-  // "service-instance-name"),
-  //        CloudFoundryApiException.class,
-  //        "Cloud Foundry API returned with error(s): ");
-  //
-  //    verify(serviceInstanceService, times(1)).destroyServiceInstance(any());
-  //    verify(serviceInstanceService, never()).allUserProvided(any(), any());
-  //  }
+    ServiceInstanceResponse response =
+        serviceInstances.destroyServiceInstance(cloudFoundrySpace, "new-service-instance-name");
+
+    assertThat(response)
+        .isEqualTo(
+            new ServiceInstanceResponse()
+                .setServiceInstanceName("new-service-instance-name")
+                .setType(DELETE)
+                .setState(IN_PROGRESS));
+    verify(serviceInstanceService, times(1)).all(any(), anyListOf(String.class));
+    verify(serviceInstanceService, times(1)).destroyServiceInstance(any());
+    verify(serviceInstanceService, never()).allUserProvided(any(), any());
+  }
+
+  @Test
+  void destroyServiceInstanceShouldThrowExceptionWhenDeleteServiceInstanceFails() {
+    Page<ServiceBinding> serviceBindingPage = new Page<>();
+    serviceBindingPage.setTotalResults(0);
+    serviceBindingPage.setTotalPages(1);
+
+    when(serviceInstanceService.all(any(), any()))
+        .thenAnswer(invocation -> Calls.response(Response.success(createOsbServiceInstancePage())));
+    when(serviceInstanceService.getBindingsForServiceInstance(any(), any(), any()))
+        .thenAnswer(invocation -> Calls.response(Response.success(serviceBindingPage)));
+    when(serviceInstanceService.destroyServiceInstance(any()))
+        .thenReturn(
+            Calls.response(
+                Response.error(500, ResponseBody.create(MediaType.get("application/json"), "{}"))));
+
+    assertThrows(
+        () -> serviceInstances.destroyServiceInstance(cloudFoundrySpace, "service-instance-name"),
+        CloudFoundryApiException.class,
+        "Cloud Foundry API returned with error(s): ");
+
+    verify(serviceInstanceService, times(1)).destroyServiceInstance(any());
+    verify(serviceInstanceService, never()).allUserProvided(any(), any());
+  }
 
   @Test
   void destroyServiceInstanceShouldReturnSuccessWhenServiceInstanceDoesNotExist() {

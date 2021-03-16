@@ -39,6 +39,8 @@ import io.vavr.collection.HashMap;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
+import okhttp3.MediaType;
+import okhttp3.ResponseBody;
 import org.junit.jupiter.api.Test;
 import retrofit2.Response;
 import retrofit2.mock.Calls;
@@ -130,40 +132,37 @@ class ServiceKeysTest {
     verify(serviceKeyService, never()).createServiceKey(any());
   }
 
-  //  @Test
-  //  void createServiceKeyShouldThrowExceptionWhenServiceKeyReturnsNotFound() {
-  //    when(spaces.getServiceInstanceByNameAndSpace(any(), any()))
-  //        .thenReturn(
-  //            CloudFoundryServiceInstance.builder()
-  //                .name(serviceKeyName)
-  //                .id(serviceInstanceId)
-  //                .build());
-  //    CreateServiceKey requestBody =
-  //        new
-  // CreateServiceKey().setName(serviceKeyName).setServiceInstanceGuid(serviceInstanceId);
-  //    when(serviceKeyService.getServiceKey(any(),
-  // any())).thenReturn(Calls.response(Response.success(createEmptyServiceKeyPage())));
-  //    RetrofitError retrofitErrorNotFound = mock(RetrofitError.class);
-  //    Response notFoundResponse =
-  //        new Response("someUri", 404, "whynot", Collections.emptyList(), null);
-  //    when(retrofitErrorNotFound.getResponse()).thenReturn(notFoundResponse);
-  //    when(serviceKeyService.createServiceKey(any())).thenThrow(retrofitErrorNotFound);
-  //
-  //    assertThrows(
-  //        () -> serviceKeys.createServiceKey(cloudFoundrySpace, serviceInstanceName,
-  // serviceKeyName),
-  //        CloudFoundryApiException.class,
-  //        "Cloud Foundry API returned with error(s): Service key '"
-  //            + serviceKeyName
-  //            + "' could not be created for service instance '"
-  //            + serviceInstanceName
-  //            + "' in region '"
-  //            + cloudFoundrySpace.getRegion()
-  //            + "'");
-  //    verify(spaces).getServiceInstanceByNameAndSpace(eq(serviceInstanceName),
-  // eq(cloudFoundrySpace));
-  //    verify(serviceKeyService).createServiceKey(requestBody);
-  //  }
+  @Test
+  void createServiceKeyShouldThrowExceptionWhenServiceKeyReturnsNotFound() {
+    when(spaces.getServiceInstanceByNameAndSpace(any(), any()))
+        .thenReturn(
+            CloudFoundryServiceInstance.builder()
+                .name(serviceKeyName)
+                .id(serviceInstanceId)
+                .build());
+    CreateServiceKey requestBody =
+        new CreateServiceKey().setName(serviceKeyName).setServiceInstanceGuid(serviceInstanceId);
+    when(serviceKeyService.getServiceKey(any(), any()))
+        .thenReturn(Calls.response(Response.success(createEmptyServiceKeyPage())));
+
+    when(serviceKeyService.createServiceKey(any()))
+        .thenReturn(
+            Calls.response(
+                Response.error(404, ResponseBody.create(MediaType.get("application/json"), "{}"))));
+
+    assertThrows(
+        () -> serviceKeys.createServiceKey(cloudFoundrySpace, serviceInstanceName, serviceKeyName),
+        CloudFoundryApiException.class,
+        "Cloud Foundry API returned with error(s): Service key '"
+            + serviceKeyName
+            + "' could not be created for service instance '"
+            + serviceInstanceName
+            + "' in region '"
+            + cloudFoundrySpace.getRegion()
+            + "'");
+    verify(spaces).getServiceInstanceByNameAndSpace(eq(serviceInstanceName), eq(cloudFoundrySpace));
+    verify(serviceKeyService).createServiceKey(requestBody);
+  }
 
   @Test
   void createServiceKeyShouldSucceedWhenServiceKeyAlreadyExists() {
